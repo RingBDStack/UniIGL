@@ -18,14 +18,10 @@ def build_graph(adj):
     # G.add_edges_from(edge_list)
     adj_numpy = adj.cpu().numpy()
 
-    # 使用 nx.from_numpy_array() 创建图
     G = nx.from_numpy_array(adj_numpy)
     return G
 
 def compute_diameter(adjacency_matrix):
-    """
-    计算图的直径（最长最短路径）
-    """
     adjacency_matrix = csr_matrix(adjacency_matrix)
     dist_matrix = shortest_path(adjacency_matrix, directed=False)
 
@@ -98,23 +94,13 @@ def calculate_rc_and_sc(adj, train_idx):
     num_nodes = adj.shape[0]
     D_G = np.max(np.linalg.norm(adj.numpy(), axis=1))  # Graph's diameter
     
-    # Step 1: Compute the graph
     G = build_graph(adj)
     
-    # Step 2: Compute Ricci curvature for edges
     ricci_dict = compute_ricci_curvature(G)
     
-    # Step 3: Precompute all pairs shortest paths using parallel computation
-    # all_paths = all_pairs_shortest_path_parallel(G, cutoff=None)
-    
-    # for id in range(num_nodes):
-    #     calculate_rc_and_sc_for_node(id, train_idx, G, ricci_dict, D_G)
-    
-    # Step 4: Use multiprocessing to calculate RC and SC for all nodes
     with mp.Pool(processes=mp.cpu_count()) as pool:
         results = pool.starmap(calculate_rc_and_sc_for_node, [(node, train_idx, G, ricci_dict, D_G) for node in range(num_nodes)])
-    
-    # Step 5: Collect results and divide by the size of train_idx to get mean
+
     rc_dict = {node: rc for node, rc, _ in results}
     sc_dict = {node: sc for node, _, sc in results}
     
@@ -122,23 +108,15 @@ def calculate_rc_and_sc(adj, train_idx):
     rc_values = [rc_dict[node] for node in range(num_nodes)]
     sc_values = [sc_dict[node] for node in range(num_nodes)]
     
-    rc_ranks = rankdata(rc_values)  # 对 RC 值进行排名
-    sc_ranks = rankdata(sc_values)  # 对 SC 值进行排名
+    rc_ranks = rankdata(rc_values)  
+    sc_ranks = rankdata(sc_values)  
     
-    # Step 6: Calculate the scores based on the formula
     scores = []
     for i in range(num_nodes):
         rc_rank = rc_ranks[i]
         sc_rank = sc_ranks[i]
-        # 计算最终的分数
         score = (math.cos(rc_rank / len(train_idx) * math.pi) + 1) * (math.cos(sc_rank / len(train_idx) * math.pi) + 1)
         scores.append(score)
     
     return scores
     
-    # Divide RC and SC values by the number of labeled nodes (train_idx size)
-    # train_size = len(train_idx)
-    # rc_values = [rc / train_size for rc in rc_values]
-    # sc_values = [sc / train_size for sc in sc_values]
-    
-    # return rc_values, sc_values

@@ -54,7 +54,6 @@ def information_select(
     if class_balanced:
         least_cls = most_cls = sorted_cls
 
-    # 收集节点
     nodes_least = [n for c in least_cls for n in labeled_nodes[c] if n in train_idx]
     nodes_most  = [n for c in most_cls  for n in labeled_nodes[c] if n in train_idx]
     if not nodes_least:
@@ -62,7 +61,6 @@ def information_select(
     if not nodes_most:
         nodes_most  = list(train_idx)
 
-    # 采样候选对
     sampled = set()
     while len(sampled) < num * 5:
         i = random.choice(nodes_least)
@@ -70,7 +68,6 @@ def information_select(
         if i != j:
             sampled.add((i, j))
 
-    # 预计算 softmax
     y_det = torch.softmax(logits_det, dim=-1)
     y_mc  = torch.softmax(logits_mc, dim=-1)
 
@@ -78,7 +75,6 @@ def information_select(
         p = p.clamp_min(1e-10)
         return -(p * p.log()).sum(dim=-1)
 
-    # 计算信息增益
     ig_list = []
     for i, j in sampled:
         H1 = ent(lambda_value * y_det[i] + (1 - lambda_value) * y_det[j])
@@ -87,6 +83,5 @@ def information_select(
         IG = (H1 - alpha * H2).item()
         ig_list.append(((i, j), IG))
 
-    # 按信息增益降序选取
     ig_list.sort(key=lambda x: x[1], reverse=True)
     return [(int(pair[0]), int(pair[1])) for pair, _ in ig_list[:num]]

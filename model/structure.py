@@ -52,27 +52,21 @@ def adjust_structure(values, embeddings, adj, k, n, m):
     else:
         new_adj = np.copy(adj)
     
-    # Step 1: 选择values最低的top-k个节点
-    # top_k_nodes = np.argsort(values)[::-1][:k]
     top_k_nodes = np.argsort(values)[:k]
    
-    # Step 2: 获取每个top节点的n跳邻居区域
     regions = []
     for node in top_k_nodes:
         region = get_n_hop_neighbors(adj, node, n)
         regions.append(region)
     
-    # Step 3: 对每个区域进行处理
     for region in regions:
         nodes_in_region = list(region)
         if len(nodes_in_region) < 2:
-            continue  # 没有边可以处理
+            continue 
         
-        # 提取嵌入并计算相似度矩阵
         sub_emb = embeddings[nodes_in_region]
         sim_matrix = cosine_similarity(sub_emb)
         
-        # 收集所有可能的无向边对（i < j）
         existing_edges = []
         non_existing_edges = []
         num_nodes = len(nodes_in_region)
@@ -81,22 +75,17 @@ def adjust_structure(values, embeddings, adj, k, n, m):
                 u = nodes_in_region[i]
                 v = nodes_in_region[j]
                 similarity = sim_matrix[i, j]
-                # 检查边是否存在
                 if new_adj[u, v] != 0:
                     existing_edges.append( (u, v, similarity) )
                 else:
                     non_existing_edges.append( (u, v, similarity) )
         
-        # Step 4: 选择要删除和添加的边
-        # 删除：existing中相似度最低的m条
         existing_sorted = sorted(existing_edges, key=lambda x: x[2])
         to_remove = existing_sorted[:m]
         
-        # 添加：non_existing中相似度最高的m条
         non_existing_sorted = sorted(non_existing_edges, key=lambda x: -x[2])
         to_add = non_existing_sorted[:m]
         
-        # 更新邻接矩阵（处理无向边）
         for u, v, _ in to_remove:
             new_adj[u, v] = 0
             new_adj[v, u] = 0
@@ -106,7 +95,7 @@ def adjust_structure(values, embeddings, adj, k, n, m):
     
     new_adj = torch.tensor(new_adj, dtype=torch.float32)
     if sparse.issparse(adj):
-        return new_adj.tocsr()  # 转换为常用格式
+        return new_adj.tocsr()  
     else:
         return new_adj
     

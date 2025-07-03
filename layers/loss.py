@@ -36,36 +36,20 @@ def alpha_entmax(input_tensor, alpha=1.8, dim=-1):
     return output.pow(alpha - 1)
 
 def get_neighbors(adj, node):
-    """
-    给定邻接矩阵 adj (假设形状 [N, N] 或稀疏格式等)，
-    返回一个节点的邻居列表(存在边的节点)。
-    """
-    # 如果是稠密矩阵，可以这样写：
     neighbors = (adj[node] > 0).nonzero().view(-1).tolist()
     return neighbors
 
 def sample_triplets_with_multi_neg(data, num_triplets=2000, num_neg=3):
-    """
-    从图 data 中随机采样若干三元组 (v, a, B)，其中:
-      - (v,a) 是存在边的正例
-      - B = {b1, ..., b_m} 与 v 不相连的多负例集合
-    num_triplets: 需要采样的三元组数量
-    num_neg: 每个三元组包含多少个负例
-    """
     triplets = []
     n_nodes = data.num_nodes
 
     for _ in range(num_triplets):
-        # 1) 随机选一个正例边 (v,a)
         v = random.randint(0, n_nodes - 1)
         neighbors_v = get_neighbors(data.adj, v)
         if not neighbors_v:
-            continue  # 如果这个 v 没有邻居，就跳过
+            continue  
         a = random.choice(neighbors_v)
         
-        # 2) 采样多负例 B
-        #   简单做法: 在 [0..n_nodes-1] 范围内随机抽 num_neg 个节点，
-        #   要求和 v 无边，且不与 v=a 重复
         negs = []
         while len(negs) < num_neg:
             b = random.randint(0, n_nodes - 1)
@@ -77,34 +61,19 @@ def sample_triplets_with_multi_neg(data, num_triplets=2000, num_neg=3):
     return triplets
 
 def cosine_sim(x, y):
-    """
-    计算批量余弦相似度，返回形状[..., 1]或[...,]的张量
-    x, y 的最后一维是特征维度
-    """
-    # 如果 x,y 均是 [d], 则 F.cosine_similarity(x,y,dim=0)
-    # 如果 x,y 是批量 [batch_size, d]，则 dim=-1
     return F.cosine_similarity(x, y, dim=-1)
 
 def linkpred_multi_neg_loss(emb, triplets, tau=0.5):
-    """
-    实现多负样本的 InfoNCE 风格链路预测损失:
-      L = - Σ_{(v,a,B)} ln( exp(sim(v,a)/tau) / Σ_{b_i in B} exp(sim(v,b_i)/tau) )
-
-    emb: [N, d] 的所有节点表示 (GNN输出)
-    triplets: [(v,a,[b1,b2,...]), ...] 三元组
-    tau: 温度参数
-    """
     device = emb.device
     total_loss = 0.0
 
     for (v, a, neg_list) in triplets:
         s_v = emb[v]
         s_a = emb[a]
-        s_neg = emb[neg_list]  # 形状 [num_neg, d]
+        s_neg = emb[neg_list]  
         
-        # 计算相似度
-        sim_va = cosine_sim(s_v, s_a) / tau  # 标量
-        sim_vneg = cosine_sim(s_v.unsqueeze(0), s_neg) / tau  # [num_neg]向量
+        sim_va = cosine_sim(s_v, s_a) / tau 
+        sim_vneg = cosine_sim(s_v.unsqueeze(0), s_neg) / tau 
 
         numerator = torch.exp(sim_va)
         denominator = numerator + torch.sum(torch.exp(sim_vneg))
