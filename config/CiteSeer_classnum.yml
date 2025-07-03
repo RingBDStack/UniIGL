@@ -1,0 +1,49 @@
+log: false
+dataset: "CiteSeer"
+imbtype: "classnum"
+imb_ratio: 20
+shuffle_seed: 3
+random_seed: 2
+backbone: "GCN"
+metric: "acc"
+nlayer: 2
+epochs: 500
+least_epoch: 30
+early_stop: 10
+nhid: 64
+lr: 0.005
+dropout: 0.5
+adj: "norm"
+weight_decay: 0.001
+
+least_Pre_epochs: 40
+pre_epochs: 200
+pre_lr: 0.0075
+
+threshold: 0.5
+graph_skip_conn: 0.8
+update_adj_ratio: 0.2
+gsl_dropout: 0.5
+iters: 1
+
+mixnum: 0.5
+lam: 0.7
+alpha: 0.1
+
+pmt_lr: 0.1
+pmt_weight_decay: 0.000001
+pmt_dropout: 0
+
+tau1: 0.1
+tau2: 0.1
+k: 10
+n: 3
+m: 5
+num_triplets: 1000
+
+gsl_dropout: 0.5
+graph_skip_conn: 0.8
+iters2: 5
+
+topo_lr: 0.15
+topo_weight_decay: 0.005

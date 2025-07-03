@@ -1,0 +1,49 @@
+log: false
+dataset: "Photo"
+imbtype: "topology"
+imb_ratio: 1
+shuffle_seed: 24
+random_seed: 1
+backbone: "GCN"
+metric: "acc"
+nlayer: 2
+epochs: 500
+least_epoch: 20
+early_stop: 10
+nhid: 64
+lr: 0.005
+dropout: 0.5
+adj: "norm"
+weight_decay: 0.0005
+
+least_Pre_epochs: 40
+pre_epochs: 200
+pre_lr: 0.01
+
+threshold: 0.5
+graph_skip_conn: 0.8
+update_adj_ratio: 0.2
+gsl_dropout: 0.5
+iters: 0
+
+mixnum: 0.3
+lam: 0.5
+alpha: 0.1
+
+pmt_lr: 0.1
+pmt_weight_decay: 0.000001
+pmt_dropout: 0
+
+tau1: 0.2
+tau2: 0.2
+k: 10
+n: 3
+m: 5
+num_triplets: 1000
+
+gsl_dropout: 0.5
+graph_skip_conn: 0.8
+iters2: 5
+
+topo_lr: 0.15
+topo_weight_decay: 0.005

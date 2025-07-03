@@ -1,0 +1,49 @@
+log: false
+dataset: "Cora"
+imbtype: "topology"
+imb_ratio: 1
+shuffle_seed: 38
+random_seed: 1
+backbone: "GCN"
+metric: "acc"
+epochs: 200
+least_epoch: 100
+early_stop: 10
+nlayer: 2
+nhid: 32
+lr: 0.001
+dropout: 0.5
+adj: "norm"
+weight_decay: 0.0005
+
+least_Pre_epochs: 100
+pre_epochs: 200
+pre_lr: 0.005
+
+threshold: 0.5
+graph_skip_conn: 0.8
+update_adj_ratio: 0.2
+gsl_dropout: 0.2
+iters: 1
+
+mixnum: 0.5
+lam: 0.5
+alpha: 0.1
+
+pmt_lr: 0.1
+pmt_weight_decay: 0.000001
+pmt_dropout: 0
+
+tau1: 0.1
+tau2: 0.1
+k: 10
+n: 3
+m: 5
+num_triplets: 1000
+
+gsl_dropout: 0.5
+graph_skip_conn: 0.8
+iters2: 5
+
+topo_lr: 0.15
+topo_weight_decay: 0.005
